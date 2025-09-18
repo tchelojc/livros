@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLUX-ON Quantum Reader - Bíblia</title>
+    
+    <!-- CSS Styles -->
+    <style>
+        /* Estilos base */
+        :root {
+            --primary-color: #9d4edd;
+            --secondary-color: #7b2cbf;
+            --accent-color: #e0aaff;
+            --background-dark: #0f0c29;
+            --background-medium: #1a1a2e;
+            --background-light: #16213e;
+            --text-color: #e6e6fa;
+            --card-bg: rgba(45, 45, 65, 0.8);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--background-dark) 0%, var(--background-medium) 50%, var(--background-light) 100%);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            grid-template-rows: auto 1fr auto;
+            grid-template-areas: 
+                "header header"
+                "sidebar main"
+                "footer footer";
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        header {
+            grid-area: header;
+            background: rgba(26, 26, 46, 0.9);
+            padding: 1.5rem;
+            border-bottom: 3px solid var(--primary-color);
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--accent-color), var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            color: var(--accent-color);
+            font-size: 1.2rem;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            grid-area: sidebar;
+            background: linear-gradient(180deg, var(--background-medium) 0%, var(--background-light) 100%);
+            border-right: 3px solid var(--primary-color);
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+        
+        .sidebar h2 {
+            color: var(--accent-color);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+        }
+        
+        /* Navigation */
+        .navigation-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .nav-button {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(157, 78, 221, 0.4);
+        }
+        
+        /* Page slider */
+        .page-slider-container {
+            margin: 1.5rem 0;
+        }
+        
+        .page-slider {
+            width: 100%;
+            margin: 0.5rem 0;
+        }
+        
+        /* Metrics */
+        .metric {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 0.8rem;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .metric h3 {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent-color);
+        }
+        
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        /* Progress bars */
+        .theme-progress {
+            margin-bottom: 0.8rem;
+        }
+        
+        .theme-name {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.3rem;
+            font-size: 0.9rem;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            border-radius: 4px;
+        }
+        
+        /* Main content */
+        main {
+            grid-area: main;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(157, 78, 221, 0.3);
+        }
+        
+        .page-header h2 {
+            color: var(--accent-color);
+            font-size: 1.8rem;
+        }
+        
+        .page-metrics {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .page-metric {
+            text-align: center;
+        }
+        
+        .page-metric-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+        
+        .page-metric-label {
+            font-size: 0.9rem;
+            color: #c77dff;
+        }
+        
+        /* Text container */
+        .text-container {
+            background: rgba(30, 30, 46, 0.95);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 0 30px rgba(123, 44, 191, 0.25);
+            line-height: 1.8;
+            font-size: 1.1rem;
+            max-height: 60vh;
+            overflow-y: auto;
+            margin-bottom: 2rem;
+            font-family: 'Georgia', serif;
+        }
+
+        /* Estilos para modo de livro grande */
+        .large-book-warning {
+            background: linear-gradient(135deg, #ff6b6b, #f44336);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .large-book-info {
+            background: linear-gradient(135deg, #4cc9f0, #4895ef);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .optimized-mode {
+            border: 2px solid #ff9800;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+            background: rgba(255, 152, 0, 0.1);
+        }
+
+        .load-more-button {
+            background: linear-gradient(135deg, #9d4edd, #7b2cbf);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 1rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .load-more-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(157, 78, 221, 0.4);
+        }
+        
+        .text-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .text-container::-webkit-scrollbar-track {
+            background: rgba(30, 30, 46, 0.5);
+            border-radius: 10px;
+        }
+        
+        .text-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 10px;
+        }
+        
+        /* Highlights */
+        .highlight {
+            background: linear-gradient(120deg, rgba(157, 78, 221, 0.3), rgba(90, 25, 154, 0.4));
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            border-bottom: 2px solid var(--accent-color);
+            font-weight: 600;
+        }
+        
+        .highlight-important {
+            background: linear-gradient(120deg, rgba(255, 107, 107, 0.3), rgba(238, 90, 36, 0.4));
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            border-bottom: 2px solid #ff6b6b;
+            font-weight: 700;
+        }
+        
+        .user-highlight {
+            background: linear-gradient(120deg, rgba(76, 201, 240, 0.3), rgba(72, 149, 239, 0.4));
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            border-bottom: 2px solid #4cc9f0;
+            font-weight: 600;
+        }
+        
+        /* Analysis tools */
+        .analysis-tools {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            border-left: 5px solid var(--primary-color);
+        }
+        
+        .analysis-tools h3 {
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+        
+        .tool-section {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .tool-section input {
+            flex: 1;
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid rgba(157, 78, 221, 0.3);
+            background: rgba(30, 30, 46, 0.8);
+            color: var(--text-color);
+        }
+        
+        .tool-section button {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .tool-section button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(157, 78, 221, 0.4);
+        }
+        
+        /* Visual analysis */
+        .visual-analysis {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 15px;
+            border-left: 5px solid var(--primary-color);
+        }
+        
+        .visual-analysis h3 {
+            color: var(--accent-color);
+            margin-bottom: 1.5rem;
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        .chart {
+            background: rgba(30, 30, 46, 0.5);
+            padding: 1rem;
+            border-radius: 10px;
+            height: 300px;
+        }
+        
+        /* Footer */
+        footer {
+            grid-area: footer;
+            background: rgba(26, 26, 46, 0.9);
+            padding: 1.5rem;
+            text-align: center;
+            border-top: 3px solid var(--primary-color);
+        }
+        
+        footer p {
+            color: var(--accent-color);
+        }
+        
+        /* Responsividade */
+        @media (max-width: 900px) {
+            body {
+                grid-template-columns: 1fr;
+                grid-template-areas: 
+                    "header"
+                    "main"
+                    "sidebar"
+                    "footer";
+            }
+            
+            .sidebar {
+                border-right: none;
+                border-top: 3px solid var(--primary-color);
+            }
+            
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .tool-section {
+                flex-direction: column;
+            }
+        }
+
+        /* Loading indicator */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            flex-direction: column;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(157, 78, 221, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 1rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error {
+            color: #ff6b6b;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        /* Search interface */
+        .search-container {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            border-left: 5px solid var(--accent-color);
+        }
+        
+        .search-results {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+        
+        .search-result-item {
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            background: rgba(30, 30, 46, 0.5);
+            border-radius: 8px;
+            border-left: 3px solid var(--primary-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .search-result-item:hover {
+            background: rgba(157, 78, 221, 0.2);
+            transform: translateX(5px);
+        }
+        
+        /* Notes and highlights */
+        .notes-container {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            border-left: 5px solid #4cc9f0;
+        }
+        
+        .note-item {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: rgba(76, 201, 240, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid #4cc9f0;
+        }
+        
+        .highlight-item {
+            padding: 0.8rem;
+            margin-bottom: 0.8rem;
+            background: rgba(255, 193, 7, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid #ffc107;
+        }
+    </style>
+    
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <h1>📖 FLUX-ON Quantum Reader</h1>
+        <p>Sistema avançado de análise e leitura multidimensional</p>
+    </header>
+    
+    <aside class="sidebar">
+        <div class="sidebar-section">
+            <h2>🔢 Navegação Rápida</h2>
+            <div class="navigation-buttons">
+                <button class="nav-button" onclick="navigateTo('first')">⏮️ Primeira</button>
+                <button class="nav-button" onclick="navigateTo('prev')">◀️ Anterior</button>
+                <button class="nav-button" onclick="navigateTo('next')">Próxima ▶️</button>
+            </div>
+        </div>
+        
+        <div class="sidebar-section">
+            <h2>🎯 Navegação por Página</h2>
+            <div class="page-slider-container">
+                <input type="range" id="pageSlider" min="1" max="100" value="1" 
+                       class="page-slider" oninput="updatePagePreview(this.value)">
+                <div id="pagePreview">Página 1 de <span id="totalPagesCount">100</span></div>
+            </div>
+            <button class="nav-button" onclick="goToPage()" style="width: 100%; margin-top: 1rem;">Ir para Página</button>
+        </div>
+        
+        <div class="sidebar-section">
+            <h2>📊 Métricas do Livro</h2>
+            <div class="metric">
+                <h3>📄 Total de Páginas</h3>
+                <div class="metric-value" id="totalPages">100</div>
+            </div>
+            <div class="metric">
+                <h3>📝 Palavras Totais</h3>
+                <div class="metric-value" id="totalWords">45,280</div>
+            </div>
+            <div class="metric">
+                <h3>🎯 Dificuldade Média</h3>
+                <div class="metric-value" id="avgDifficulty">72.5/100</div>
+            </div>
+        </div>
+        
+        <div class="sidebar-section">
+            <h2>🎯 Temas Principais</h2>
+            <div id="themesContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Carregando temas...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <h2>🔍 Busca Avançada</h2>
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Digite palavra, frase ou conceito..." 
+                       style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid rgba(157, 78, 221, 0.3); background: rgba(30, 30, 46, 0.8); color: var(--text-color);">
+                <button onclick="performSearch()" class="nav-button" style="width: 100%; margin-top: 0.8rem;">🔎 Buscar</button>
+                <div id="searchResults" class="search-results" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <h2>📝 Minhas Anotações</h2>
+            <div class="notes-container">
+                <textarea id="noteInput" placeholder="Digite suas anotações aqui..." 
+                          style="width: 100%; height: 100px; padding: 0.8rem; border-radius: 8px; border: 1px solid rgba(76, 201, 240, 0.3); background: rgba(30, 30, 46, 0.8); color: var(--text-color); margin-bottom: 0.8rem;"></textarea>
+                <button onclick="saveNote()" class="nav-button" style="width: 100%; background: linear-gradient(135deg, #4cc9f0, #4895ef);">💾 Salvar Anotação</button>
+                <div id="savedNotes"></div>
+            </div>
+        </div>
+    </aside>
+    
+    <main class="main-content">
+        <div class="page-header">
+            <h2 id="bookTitle">📖 Carregando livro... - Página <span id="currentPage">1</span> de <span id="totalPagesHeader">100</span></h2>
+            <div class="page-metrics">
+                <div class="page-metric">
+                    <div class="page-metric-value" id="pageDifficulty">0.0</div>
+                    <div class="page-metric-label">Dificuldade</div>
+                </div>
+                <div class="page-metric">
+                    <div class="page-metric-value" id="pageWordCount">0</div>
+                    <div class="page-metric-label">Palavras</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-container" id="textContainer">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Carregando conteúdo do livro...</p>
+            </div>
+        </div>
+        
+        <div class="analysis-tools">
+            <h3>🔍 Ferramentas de Análise de Texto</h3>
+            <div class="tool-section">
+                <input type="text" placeholder="Selecionar texto para análise..." 
+                       id="textSelection">
+                <button onclick="analyzeSelectedText()">🔍 Analisar Texto</button>
+                <button onclick="highlightSelectedText()" style="background: linear-gradient(135deg, #4cc9f0, #4895ef);">⭐ Destacar Texto</button>
+            </div>
+        </div>
+        
+        <div class="visual-analysis">
+            <h3>📊 Análise Visual da Página</h3>
+            <div class="charts-container">
+                <div class="chart">
+                    <canvas id="complexityChart"></canvas>
+                </div>
+                <div class="chart">
+                    <canvas id="themesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="analysis-tools">
+            <h3>🤖 Análise com IA</h3>
+            <div class="tool-section">
+                <select id="analysisType" style="padding: 0.8rem; border-radius: 8px; border: 1px solid rgba(157, 78, 221, 0.3); background: rgba(30, 30, 46, 0.8); color: var(--text-color);">
+                    <option value="summary">📋 Resumo da Página</option>
+                    <option value="analysis">🔍 Análise Profunda</option>
+                    <option value="explain">📚 Explicar Conceitos</option>
+                    <option value="context">🌍 Contexto do Capítulo</option>
+                </select>
+                <button onclick="generateAIAnalysis()" style="background: linear-gradient(135deg, #ff6b6b, #f44336);">🤖 Gerar Análise IA</button>
+            </div>
+            <div id="aiAnalysisResult" style="margin-top: 1rem; padding: 1rem; background: rgba(30, 30, 46, 0.8); border-radius: 8px; border-left: 4px solid #ff6b6b; display: none;"></div>
+        </div>
+    </main>
+    
+    <footer>
+        <p>✨ <strong>FLUX-ON Quantum Reader v8.0</strong> - Sistema Avançado de Análise Literária</p>
+    </footer>
+    
+    <script>
+        // Dados do livro (serão injetados pelo Python)
+        let bookData = {
+            book_name: "Bíblia Sagrada",
+            total_segments: 100,
+            total_words: 45280,
+            avg_difficulty: 72.5,
+            is_large_book: true,
+            segments: [],
+            current_page: 1
+        };
+
+        // Variáveis globais
+        let complexityChart = null;
+        let themesChart = null;
+        let userHighlights = {};
+        let userNotes = {};
+        let currentSearchResults = [];
+
+        // Função para adaptar interface para livros grandes
+        function adaptInterfaceForLargeBook() {
+            // Adicionar mensagem informativa
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'sidebar-section';
+                infoDiv.innerHTML = `
+                    <h2>📖 Modo Livro Grande</h2>
+                    <div class="metric">
+                        <h3>ℹ️ Informações</h3>
+                        <div class="metric-value">Otimizado para performance</div>
+                        <p style="font-size: 0.8rem; color: #c77dff; margin-top: 0.5rem;">
+                            Este livro muito grande está sendo exibido em modo otimizado.
+                            Algumas funcionalidades podem estar limitadas.
+                        </p>
+                    </div>
+                `;
+                sidebar.insertBefore(infoDiv, sidebar.firstChild);
+            }
+            
+            // Modificar a inicialização para livros grandes
+            const originalInitializeInterface = initializeInterface;
+            window.initializeInterface = function() {
+                try {
+                    // Configuração básica para livros grandes
+                    const pageSlider = document.getElementById('pageSlider');
+                    const totalSegments = bookData.total_segments || 1;
+                    
+                    pageSlider.max = totalSegments;
+                    document.getElementById('totalPagesCount').textContent = totalSegments;
+                    document.getElementById('totalPages').textContent = totalSegments;
+                    document.getElementById('totalPagesHeader').textContent = totalSegments;
+                    document.getElementById('totalWords').textContent = (bookData.total_words || 0).toLocaleString();
+                    document.getElementById('avgDifficulty').textContent = `${(bookData.avg_difficulty || 0).toFixed(1)}/100`;
+                    
+                    // Carregar primeira página se houver segmentos
+                    if (bookData.segments && bookData.segments.length > 0) {
+                        loadPage(1);
+                    } else {
+                        showLargeBookMessage();
+                    }
+                    
+                } catch (error) {
+                    console.error('Erro ao inicializar interface para livro grande:', error);
+                    showLargeBookMessage();
+                }
+            };
+        }
+
+        function showLargeBookMessage() {
+            document.getElementById('textContainer').innerHTML = `
+                <div class="loading">
+                    <h3>📖 Livro Muito Grande</h3>
+                    <p>Este livro contém ${bookData.total_segments || 0} páginas e ${(bookData.total_words || 0).toLocaleString()} palavras.</p>
+                    <p>Para melhor performance, estamos exibindo uma versão otimizada.</p>
+                    <div style="margin-top: 1.5rem;">
+                        <button onclick="loadFirstAvailablePage()" class="nav-button">
+                            📖 Carregar Primeiras Páginas
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadFirstAvailablePage() {
+            if (bookData.segments && bookData.segments.length > 0) {
+                loadPage(1);
+            } else {
+                // Tentar carregar conteúdo sob demanda
+                loadContentOnDemand(1);
+            }
+        }
+
+        function loadContentOnDemand(pageNumber) {
+            // Para livros muito grandes, carregar conteúdo progressivamente
+            document.getElementById('textContainer').innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Carregando página ${pageNumber}...</p>
+                </div>
+            `;
+            
+            // Simular carregamento (em implementação real, isso buscaria dados do servidor)
+            setTimeout(() => {
+                if (bookData.segments && bookData.segments.length > 0) {
+                    loadPage(pageNumber);
+                } else {
+                    // Fallback: mostrar mensagem de conteúdo não disponível
+                    document.getElementById('textContainer').innerHTML = `
+                        <p class="error">Conteúdo não disponível para esta página.</p>
+                        <p>O livro é muito grande e requer carregamento adicional.</p>
+                    `;
+                }
+            }, 1000);
+        }
+
+        // Função para inicializar a interface
+        function initializeInterface() {
+            try {
+                // Verificar se bookData foi injetado corretamente
+                if (!bookData || typeof bookData !== 'object') {
+                    throw new Error('Dados do livro não carregados corretamente');
+                }
+
+                // Verificar se é um livro grande e adaptar a interface
+                if (bookData.is_large_book) {
+                    console.log("📖 Livro grande detectado, usando modo otimizado");
+                    adaptInterfaceForLargeBook();
+                }
+
+                // Configurar o slider de páginas
+                const pageSlider = document.getElementById('pageSlider');
+                const totalSegments = bookData.total_segments || 1;
+                
+                pageSlider.max = totalSegments;
+                document.getElementById('totalPagesCount').textContent = totalSegments;
+                document.getElementById('totalPages').textContent = totalSegments;
+                document.getElementById('totalPagesHeader').textContent = totalSegments;
+                document.getElementById('totalWords').textContent = (bookData.total_words || 0).toLocaleString();
+                document.getElementById('avgDifficulty').textContent = `${(bookData.avg_difficulty || 0).toFixed(1)}/100`;
+                
+                // Carregar primeira página
+                if (bookData.segments && bookData.segments.length > 0) {
+                    loadPage(1);
+                } else {
+                    document.getElementById('textContainer').innerHTML = 
+                        '<p class="error">Nenhum segmento de texto disponível.</p>';
+                }
+                
+            } catch (error) {
+                console.error('Erro ao inicializar interface:', error);
+                document.getElementById('textContainer').innerHTML = 
+                    '<p class="error">Erro ao carregar o livro. Verifique os dados.</p>';
+            }
+        }
+        
+        function navigateTo(direction) {
+            let newPage = bookData.current_page || 1;
+            
+            switch(direction) {
+                case 'first': newPage = 1; break;
+                case 'prev': newPage = Math.max(1, (bookData.current_page || 1) - 1); break;
+                case 'next': newPage = Math.min(bookData.total_segments || 1, (bookData.current_page || 1) + 1); break;
+                case 'last': newPage = bookData.total_segments || 1; break;
+            }
+            
+            if (newPage !== (bookData.current_page || 1)) {
+                loadPage(newPage);
+            }
+        }
+        
+        function updatePagePreview(pageNumber) {
+            document.getElementById('pagePreview').textContent = `Página ${pageNumber} de ${bookData.total_segments || 1}`;
+        }
+        
+        function goToPage() {
+            const pageNumber = parseInt(document.getElementById('pageSlider').value);
+            if (!isNaN(pageNumber)) {
+                loadPage(pageNumber);
+            }
+        }
+        
+        function loadPage(pageNumber) {
+            const totalSegments = bookData.total_segments || 1;
+            if (pageNumber < 1 || pageNumber > totalSegments) return;
+            
+            bookData.current_page = pageNumber;
+            const segment = bookData.segments[pageNumber - 1];
+            
+            if (!segment) {
+                console.error(`Segmento ${pageNumber} não encontrado`);
+                document.getElementById('textContainer').innerHTML = 
+                    '<p class="error">Conteúdo não disponível para esta página.</p>';
+                return;
+            }
+            
+            // Atualizar interface - VERIFICAR SE ELEMENTOS EXISTEM
+            const bookTitleEl = document.getElementById('bookTitle');
+            const currentPageEl = document.getElementById('currentPage');
+            const pageDifficultyEl = document.getElementById('pageDifficulty');
+            const pageWordCountEl = document.getElementById('pageWordCount');
+            const pageSliderEl = document.getElementById('pageSlider');
+            const pagePreviewEl = document.getElementById('pagePreview');
+            
+            if (bookTitleEl) bookTitleEl.innerHTML = `📖 ${bookData.book_name || 'Livro'} - Página ${pageNumber} de ${totalSegments}`;
+            if (currentPageEl) currentPageEl.textContent = pageNumber;
+            if (pageDifficultyEl) pageDifficultyEl.textContent = segment.difficulty ? segment.difficulty.toFixed(1) : '0.0';
+            if (pageWordCountEl) pageWordCountEl.textContent = segment.complexity_metrics ? segment.complexity_metrics.word_count : '0';
+            if (pageSliderEl) pageSliderEl.value = pageNumber;
+            if (pagePreviewEl) pagePreviewEl.textContent = `Página ${pageNumber} de ${totalSegments}`;
+            
+            // Renderizar texto com destaques
+            renderTextWithHighlights(segment);
+            
+            // Renderizar gráficos
+            renderCharts(segment);
+            
+            // Renderizar temas
+            renderThemes(segment);
+            
+            // Carregar anotações do usuário
+            loadUserNotes(pageNumber);
+            
+            // Esconder resultados de busca
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('aiAnalysisResult').style.display = 'none';
+        }
+        
+        function renderTextWithHighlights(segment) {
+            const textContainer = document.getElementById('textContainer');
+            
+            if (!segment || !segment.text) {
+                textContainer.innerHTML = '<p class="error">Conteúdo não disponível para esta página.</p>';
+                return;
+            }
+            
+            let highlightedText = segment.text;
+            
+            // Adicionar destaques para palavras-chave
+            if (segment.analysis && segment.analysis.keywords) {
+                segment.analysis.keywords.forEach(keyword => {
+                    const regex = new RegExp(`\\b${escapeRegExp(keyword)}\\b`, 'gi');
+                    highlightedText = highlightedText.replace(
+                        regex,
+                        `<span class="highlight">${keyword}</span>`
+                    );
+                });
+            }
+            
+            // Adicionar destaques para entidades
+            if (segment.analysis && segment.analysis.entities) {
+                segment.analysis.entities.forEach(entity => {
+                    const regex = new RegExp(`\\b${escapeRegExp(entity[0])}\\b`, 'gi');
+                    highlightedText = highlightedText.replace(
+                        regex,
+                        `<span class="highlight-important">${entity[0]}</span>`
+                    );
+                });
+            }
+            
+            // Adicionar destaques do usuário
+            const pageHighlights = userHighlights[bookData.current_page] || {};
+            Object.values(pageHighlights).forEach(highlight => {
+                if (highlight.text) {
+                    const regex = new RegExp(escapeRegExp(highlight.text), 'gi');
+                    highlightedText = highlightedText.replace(
+                        regex,
+                        `<span class="user-highlight">${highlight.text}</span>`
+                    );
+                }
+            });
+            
+            // Formatar parágrafos
+            highlightedText = highlightedText.replace(/\n\n/g, '</p><p>');
+            highlightedText = highlightedText.replace(/\n/g, '<br>');
+            highlightedText = `<p>${highlightedText}</p>`;
+            
+            textContainer.innerHTML = highlightedText;
+        }
+        
+        function renderCharts(segment) {
+            // Gráfico de complexidade (radar)
+            const complexityCtx = document.getElementById('complexityChart');
+            if (!complexityCtx) return;
+            
+            if (complexityChart) {
+                complexityChart.destroy();
+            }
+            
+            // Dados padrão caso não existam métricas
+            const metrics = segment.complexity_metrics || {
+                word_count: 0,
+                sentence_count: 0,
+                avg_sentence_length: 0,
+                avg_word_length: 0
+            };
+            
+            complexityChart = new Chart(complexityCtx.getContext('2d'), {
+                type: 'radar',
+                data: {
+                    labels: ['Palavras', 'Sentenças', 'Pal./Sentença', 'Tam. Médio'],
+                    datasets: [{
+                        label: 'Métricas de Complexidade',
+                        data: [
+                            metrics.word_count,
+                            metrics.sentence_count,
+                            metrics.avg_sentence_length,
+                            metrics.avg_word_length
+                        ],
+                        backgroundColor: 'rgba(224, 170, 255, 0.3)',
+                        borderColor: '#e0aaff',
+                        pointBackgroundColor: '#e0aaff',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#e0aaff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: 'rgba(255, 255, 255, 0.2)'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.2)'
+                            },
+                            pointLabels: {
+                                color: '#e0aaff'
+                            },
+                            ticks: {
+                                backdropColor: 'transparent',
+                                color: '#c77dff'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e0aaff'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de temas (doughnut)
+            const themesCtx = document.getElementById('themesChart');
+            if (!themesCtx) return;
+            
+            if (themesChart) {
+                themesChart.destroy();
+            }
+            
+            const themeLabels = segment.themes ? Object.keys(segment.themes) : [];
+            const themeData = segment.themes ? Object.values(segment.themes) : [];
+            
+            // Adicionar temas estendidos se disponíveis
+            if (segment.extended_themes) {
+                Object.entries(segment.extended_themes).forEach(([theme, score]) => {
+                    if (score > 5) { // Only show significant themes
+                        themeLabels.push(theme);
+                        themeData.push(score);
+                    }
+                });
+            }
+            
+            if (themeLabels.length > 0) {
+                themesChart = new Chart(themesCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: themeLabels,
+                        datasets: [{
+                            label: 'Distribuição de Temas',
+                            data: themeData,
+                            backgroundColor: [
+                                'rgba(157, 78, 221, 0.8)',
+                                'rgba(76, 201, 240, 0.8)',
+                                'rgba(255, 107, 107, 0.8)',
+                                'rgba(255, 193, 7, 0.8)',
+                                'rgba(102, 187, 106, 0.8)',
+                                'rgba(171, 71, 188, 0.8)',
+                                'rgba(255, 152, 0, 0.8)',
+                                'rgba(156, 39, 176, 0.8)'
+                            ],
+                            borderColor: [
+                                '#9d4edd',
+                                '#4cc9f0',
+                                '#ff6b6b',
+                                '#ffc107',
+                                '#66bb6a',
+                                '#ab47bc',
+                                '#ff9800',
+                                '#9c27b0'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: '#e0aaff',
+                                    padding: 15
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        function renderThemes(segment) {
+            const themesContainer = document.getElementById('themesContainer');
+            if (!themesContainer) return;
+            
+            themesContainer.innerHTML = '';
+            
+            // Combinar temas regulares e estendidos
+            const allThemes = {...segment.themes, ...segment.extended_themes};
+            
+            if (!allThemes || Object.keys(allThemes).length === 0) {
+                themesContainer.innerHTML = '<p>Nenhum tema identificado nesta página.</p>';
+                return;
+            }
+            
+            // Ordenar temas por score
+            const sortedThemes = Object.entries(allThemes)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 8); // Limitar a 8 temas
+            
+            sortedThemes.forEach(([theme, score]) => {
+                const themeElement = document.createElement('div');
+                themeElement.className = 'theme-progress';
+                
+                // Adicionar ícones para temas específicos
+                let themeIcon = '📊';
+                if (theme.includes('política') || theme.includes('governo')) themeIcon = '🏛️';
+                if (theme.includes('religião') || theme.includes('fé')) themeIcon = '🙏';
+                if (theme.includes('sexo') || theme.includes('amor')) themeIcon = '❤️';
+                if (theme.includes('cultura') || theme.includes('arte')) themeIcon = '🎭';
+                if (theme.includes('ciência') || theme.includes('tecnologia')) themeIcon = '🔬';
+                if (theme.includes('filosofia') || theme.includes('pensamento')) themeIcon = '🧠';
+                
+                themeElement.innerHTML = `
+                    <div class="theme-name">
+                        <span>${themeIcon} ${theme.charAt(0).toUpperCase() + theme.slice(1)}</span>
+                        <span>${score.toFixed(1)}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${score}%"></div>
+                    </div>
+                `;
+                
+                themesContainer.appendChild(themeElement);
+            });
+        }
+        
+        function analyzeSelectedText() {
+            const selectedText = document.getElementById('textSelection').value;
+            if (selectedText) {
+                // Simular análise
+                alert(`Texto selecionado para análise:\n\n"${selectedText}"\n\nEm uma implementação real, isso seria enviado para um serviço de análise.`);
+                
+                // Adicionar como destaque do usuário
+                highlightSelectedText();
+                
+            } else {
+                alert('Por favor, selecione ou digite um texto para análise.');
+            }
+        }
+        
+        function highlightSelectedText() {
+            const selectedText = document.getElementById('textSelection').value;
+            if (selectedText) {
+                const currentPage = bookData.current_page;
+                if (!userHighlights[currentPage]) {
+                    userHighlights[currentPage] = {};
+                }
+                
+                const highlightId = `highlight_${Date.now()}`;
+                userHighlights[currentPage][highlightId] = {
+                    text: selectedText,
+                    page: currentPage,
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Atualizar a página para mostrar o destaque
+                loadPage(currentPage);
+                
+                // Limpar campo de texto
+                document.getElementById('textSelection').value = '';
+                
+                alert('Texto destacado com sucesso!');
+            } else {
+                alert('Por favor, selecione ou digite um texto para destacar.');
+            }
+        }
+        
+        function performSearch() {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            if (!searchTerm) {
+                alert('Por favor, digite um termo para buscar.');
+                return;
+            }
+            
+            const results = [];
+            const searchTermLower = searchTerm.toLowerCase();
+            
+            // Buscar em todos os segmentos
+            bookData.segments.forEach((segment, index) => {
+                const pageNumber = index + 1;
+                const text = segment.text ? segment.text.toLowerCase() : '';
+                
+                if (text.includes(searchTermLower)) {
+                    // Encontrar posição do termo
+                    const position = text.indexOf(searchTermLower);
+                    const contextStart = Math.max(0, position - 50);
+                    const contextEnd = Math.min(text.length, position + searchTerm.length + 50);
+                    const excerpt = text.substring(contextStart, contextEnd);
+                    
+                    // Destacar o termo no excerto
+                    const highlightedExcerpt = excerpt.replace(
+                        new RegExp(escapeRegExp(searchTermLower), 'gi'),
+                        match => `<span class="highlight">${match}</span>`
+                    );
+                    
+                    results.push({
+                        page: pageNumber,
+                        excerpt: highlightedExcerpt,
+                        relevance: (segment.text.match(new RegExp(searchTermLower, 'gi')) || []).length
+                    });
+                }
+            });
+            
+            // Ordenar por relevância
+            results.sort((a, b) => b.relevance - a.relevance);
+            currentSearchResults = results;
+            
+            // Exibir resultados
+            displaySearchResults(results);
+        }
+        
+        function displaySearchResults(results) {
+            const resultsContainer = document.getElementById('searchResults');
+            resultsContainer.innerHTML = '';
+            resultsContainer.style.display = 'block';
+            
+            if (results.length === 0) {
+                resultsContainer.innerHTML = '<p>Nenhum resultado encontrado.</p>';
+                return;
+            }
+            
+            resultsContainer.innerHTML = `<p><strong>${results.length} resultado(s) encontrado(s)</strong></p>`;
+            
+            results.slice(0, 10).forEach((result, index) => {
+                const resultElement = document.createElement('div');
+                resultElement.className = 'search-result-item';
+                resultElement.innerHTML = `
+                    <strong>Página ${result.page}</strong> (${result.relevance} ocorrência(s))
+                    <div style="margin-top: 0.5rem; font-size: 0.9em; color: #c77dff;">
+                        ...${result.excerpt}...
+                    </div>
+                `;
+                
+                resultElement.onclick = () => {
+                    loadPage(result.page);
+                    document.getElementById('searchResults').style.display = 'none';
+                };
+                
+                resultsContainer.appendChild(resultElement);
+            });
+            
+            if (results.length > 10) {
+                resultsContainer.innerHTML += `<p>... e mais ${results.length - 10} resultados</p>`;
+            }
+        }
+        
+        function saveNote() {
+            const noteText = document.getElementById('noteInput').value.trim();
+            if (!noteText) {
+                alert('Por favor, digite uma anotação.');
+                return;
+            }
+            
+            const currentPage = bookData.current_page;
+            if (!userNotes[currentPage]) {
+                userNotes[currentPage] = [];
+            }
+            
+            userNotes[currentPage].push({
+                text: noteText,
+                timestamp: new Date().toISOString()
+            });
+            
+            // Atualizar exibição de anotações
+            loadUserNotes(currentPage);
+            
+            // Limpar campo de entrada
+            document.getElementById('noteInput').value = '';
+            
+            alert('Anotação salva com sucesso!');
+        }
+        
+        function loadUserNotes(pageNumber) {
+            const notesContainer = document.getElementById('savedNotes');
+            notesContainer.innerHTML = '';
+            
+            const notes = userNotes[pageNumber] || [];
+            
+            if (notes.length === 0) {
+                notesContainer.innerHTML = '<p>Nenhuma anotação para esta página.</p>';
+                return;
+            }
+            
+            notes.forEach((note, index) => {
+                const noteElement = document.createElement('div');
+                noteElement.className = 'note-item';
+                
+                const date = new Date(note.timestamp);
+                const formattedDate = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+                
+                noteElement.innerHTML = `
+                    <div style="font-size: 0.8em; color: #4cc9f0; margin-bottom: 0.5rem;">
+                        ${formattedDate}
+                    </div>
+                    <div>${note.text}</div>
+                    <button onclick="deleteNote(${pageNumber}, ${index})" style="margin-top: 0.5rem; padding: 0.3rem 0.6rem; background: #ff6b6b; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 0.8em;">
+                        🗑️ Excluir
+                    </button>
+                `;
+                
+                notesContainer.appendChild(noteElement);
+            });
+        }
+        
+        function deleteNote(pageNumber, noteIndex) {
+            if (userNotes[pageNumber] && userNotes[pageNumber][noteIndex]) {
+                userNotes[pageNumber].splice(noteIndex, 1);
+                loadUserNotes(pageNumber);
+            }
+        }
+        
+        function generateAIAnalysis() {
+            const analysisType = document.getElementById('analysisType').value;
+            const currentSegment = bookData.segments[bookData.current_page - 1];
+            
+            if (!currentSegment || !currentSegment.text) {
+                alert('Nenhum conteúdo disponível para análise.');
+                return;
+            }
+            
+            // Simular análise com IA
+            const analysisResult = simulateAIAnalysis(analysisType, currentSegment.text);
+            
+            // Exibir resultado
+            const resultContainer = document.getElementById('aiAnalysisResult');
+            resultContainer.innerHTML = `
+                <h4>🤖 Análise IA - ${getAnalysisTypeName(analysisType)}</h4>
+                <div style="margin-top: 1rem; line-height: 1.6;">
+                    ${analysisResult}
+                </div>
+            `;
+            resultContainer.style.display = 'block';
+        }
+        
+        function simulateAIAnalysis(type, text) {
+            // Simulação de análise com IA baseada no tipo
+            const textPreview = text.length > 200 ? text.substring(0, 200) + '...' : text;
+            
+            switch(type) {
+                case 'summary':
+                    return `
+                        <p><strong>📋 Resumo da Página:</strong></p>
+                        <p>Esta página contém conteúdo relevante sobre diversos temas. O texto apresenta uma estrutura coesa com foco na transmissão de conhecimento e reflexão.</p>
+                        <p><em>Trecho analisado: "${textPreview}"</em></p>
+                    `;
+                    
+                case 'analysis':
+                    return `
+                        <p><strong>🔍 Análise Profunda:</strong></p>
+                        <p>O texto demonstra complexidade conceitual moderada, com uso de linguagem acessível mas precisa. São identificados padrões de repetição que reforçam os conceitos principais.</p>
+                        <p><strong>Pontos-chave:</strong></p>
+                        <ul>
+                            <li>Uso de metáforas para explicar conceitos complexos</li>
+                            <li>Estrutura narrativa clara e progressiva</li>
+                            <li>Ênfase em valores e princípios fundamentais</li>
+                        </ul>
+                    `;
+                    
+                case 'explain':
+                    return `
+                        <p><strong>📚 Explicação de Conceitos:</strong></p>
+                        <p>Os conceitos presentes nesta página relacionam-se principalmente com temas de filosofia e comportamento humano. A linguagem utilizada busca equilibrar precisão técnica com acessibilidade.</p>
+                        <p><strong>Termos identificados:</strong> consciência, comportamento, evolução, energia, transformação.</p>
+                    `;
+                    
+                case 'context':
+                    return `
+                        <p><strong>🌍 Contexto do Capítulo:</strong></p>
+                        <p>Esta página integra-se ao fluxo narrativo do capítulo atual, contribuindo para o desenvolvimento progressivo dos temas centrais da obra. A sequência lógica mantém coerência com as páginas anteriores e prepara o terreno para conteúdos subsequentes.</p>
+                    `;
+                    
+                default:
+                    return '<p>Análise não disponível para este tipo.</p>';
+            }
+        }
+        
+        function getAnalysisTypeName(type) {
+            const names = {
+                'summary': 'Resumo',
+                'analysis': 'Análise Profunda',
+                'explain': 'Explicação de Conceitos',
+                'context': 'Contexto do Capítulo'
+            };
+            return names[type] || 'Análise';
+        }
+        
+        // Função utilitária para escapar caracteres especiais em regex
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+        
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar se bookData foi injetado corretamente
+            if (typeof bookData === 'string' && bookData === '{"book_name":"B\\u00edblia em PDF.pdf","total_segments":2494,"total_words":792016,"avg_difficulty":28.56796226012857,"current_page":1,"segments":[{"id":1,"text":"\\n[METADADOS P\\u00c1GINA 8]: \\n1 \\n\\n\\n\\n================================================== P\\u00c1GINA 1 ==================================================\\n\\nG\\u00eanesis  1  1 [\\u00cdndice]  \\n \\n \\n \\n \\n  \\n\\n\\n================================================== P\\u00c1GINA 2 ==================================================\\n\\nG\\u00eanesis  1  2 [\\u00cdndice]  \\n \\n \\n \\n \\n \\n \\n \\n \\n  \\n\\n\\n================================================== P\\u00c1GINA 3 ==================================================\\n\\nG\\u00eanesis  1  3 [\\u00cdndice]  \\n \\n\\u00cdndice  \\n \\n \\nANTIGO TESTAMENTO  \\n \\nG\\u00eanesis  ................................ ...... 8 \\n\\u00caxodo  ................................ ........  219 \\nLev\\u00edtico  ................................ ...... 398 \\nN\\u00fameros  ................................ .... 528 \\nDeuteron\\u00f4mio  ............................  711 \\nJosu\\u00e9  ................................ ..........  861 \\nJu\\u00edzes  ................................ .........  965 \\nRute  ................................ ...........  1071  \\n1 Samuel  ................................ .... 1086...","difficulty":18.41111111111111,"complexity_metrics":{"word_count":135,"sentence_count":23,"paragraph_count":9,"avg_sentence_length":5.869565217391305,"avg_word_length":12.11111111111111,"unique_word_ratio":0.5111111111111111,"avg_paragraph_length":15.0,"punctuation_density":6.318518518518519,"line_break_count":66,"formatting_preservation_score":100.0},"themes":{},"extended_themes":{}},{"id":11,"text":"\\nedificou uma cidade, e chamou o nome da \\ncidade conforme o nome de seu filho \\nEnoque;  \\n18 E a Enoque nasceu Irade, e Irade gerou \\na Meujael, e Meujael gerou a Metusael e \\nMetusael gerou a Lameque.  \\n19 E tomou Lameque para si duas \\nmulhe res; o nome de uma era Ada, e o \\nnome da outra, Zil\\u00e1.  \\n20 E Ada deu \\u00e0 luz a Jabal; este foi o pai \\ndos que habitam em tendas e t\\u00eam gado.  \\n21 E o nome do seu irm\\u00e3o era Jubal; este \\nfoi o pai de todos os que tocam harpa e \\n\\u00f3rg\\u00e3o.  \\n22 E Zil\\u00e1 tamb\\u00e9m deu \\u00e0 luz a Tubal caim, \\nmestre de toda a obra de cobre e ferro; e a \\nirm\\u00e3 de Tubalcaim foi Noema.  \\n23 E disse Lameque a suas mulheres Ada e \\nZil\\u00e1: Ouvi a minha voz; v\\u00f3s, mulheres de \\nLameque, escutai as minhas palavras; \\n\\n================================================== P\\u00c1GINA 23 ==================================================\\n\\nG\\u00eanesis  5  23 [\\u00cdndice]  \\n \\nporque eu matei um homem por me ferir, e \\num jovem por me p isar. \\n24 Porque sete vezes Caim ser\\u00e1 castigado; \\nmas Lameque setenta vezes sete.  \\n25...","difficulty":26.071225071225072,"complexity_metrics":{"word_count":351,"sentence_count":15,"paragraph_count":5,"avg_sentence_length":23.4,"avg_word_length":4.219373219373219,"unique_word_ratio":0.5242165242165242,"avg_paragraph_length":70.2,"punctuation_density":0.14245014245014245,"line_break_count":55,"formatting_preservation_score":100.0},"themes":{},"extended_themes":{}},{"id":21,"text":"Cuxe s\\u00e3o: Seb\\u00e1, Havil\\u00e1, \\nSabt\\u00e1, Raam\\u00e1 e Sabtec\\u00e1; e os filhos de \\nRaam\\u00e1: Seb\\u00e1 e Ded\\u00e3.  \\n8 E Cux e gerou a Ninrode; este come\\u00e7ou a \\nser poderoso na terra.  \\n9 E este foi poderoso ca\\u00e7ador diante da \\nface do SENHOR; por isso se diz: Como \\n\\n================================================== P\\u00c1GINA 41 ==================================================\\n\\nG\\u00eanesis  10  41 [\\u00cdndice]  \\n \\nNinrode, poderoso ca\\u00e7ador diante do \\nSENHOR.  \\n10 E o princ\\u00edpio do seu reino foi Babel, \\nEreque, Acade e Caln\\u00e9, na terra de S inar.  \\n11 Desta mesma terra saiu \\u00e0 Ass\\u00edria e \\nedificou a N\\u00ednive, Reobote -Ir, Cal\\u00e1,  \\n12 E Resen, entre N\\u00ednive e Cal\\u00e1 (esta \\u00e9 a \\ngrande cidade).  \\n13 E Mizraim gerou a Ludim, a Anamim, \\na Leabim, a Naftuim,  \\n14 A Patrusim e a Casluim (donde sa\\u00edram \\nos filisteus) e a Caftorim.  \\n15 E Cana\\u00e3 gerou a Sidom, seu \\nprimog\\u00eanito, e a Hete;  \\n16 E ao jebuseu, ao amorreu, ao girgaseu,  \\n17 E ao heveu, ao arqueu, ao sineu,  \\n18 E ao arvadeu, ao zemareu, e ao \\nhamateu, e depois se espalharam as \\nfam\\u00edli...","difficulty":27.048787878787877,"complexity_metrics":{"word_count":330,"sentence_count":15,"paragraph_count":5,"avg_sentence_length":22.0,"avg_word_length":4.506060606060606,"unique_word_ratio":0.5878787878787879,"avg_paragraph_length":66.0,"punctuation_density":0.22424242424242424,"line_break_count":58,"formatting_preservation_score":100.0},"themes":{},"extended_themes":{}},{"id":31,"text":"59 [\\u00cdndice]  \\n \\n7 E o anjo do SENHOR a achou junto a \\numa fonte de \\u00e1gua no deserto, junto \\u00e0 \\nfonte no caminho de Sur.  \\n8 E disse: Agar, serva de Sarai, donde \\nvens, e para onde vais? E ela disse: Venho \\nfugida da face de Sarai minha senh ora. \\n9 Ent\\u00e3o lhe disse o anjo do SENHOR: \\nTorna -te para tua senhora, e humilha -te \\ndebaixo de suas m\\u00e3os.  \\n10 Disse -lhe mais o anjo do SENHOR: \\nMultiplicarei sobremaneira a tua \\ndescend\\u00eancia, que n\\u00e3o ser\\u00e1 contada, por \\nnumerosa que ser\\u00e1.  \\n11 Disse -lhe tamb\\u00e9m o anj o do SENHOR: \\nEis que concebeste, e dar\\u00e1s \\u00e0 luz um filho, \\ne chamar\\u00e1s o seu nome Ismael; porquanto \\no SENHOR ouviu a tua afli\\u00e7\\u00e3o.  \\n12 E ele ser\\u00e1 homem feroz, e a sua m\\u00e3o \\nser\\u00e1 contra todos, e a m\\u00e3o de todos contra \\nele; e habitar\\u00e1 diante da face de todos os \\nseus irm\\u00e3os.  \\n13 E ela chamou o nome do SENHOR, \\nque com ela falava: Tu \\u00e9s Deus que me v\\u00ea; \\nporque disse: N\\u00e3o olhei eu tamb\\u00e9m para \\naquele que me v\\u00ea?  \\n\\n================================================== P\\u00c1GINA 60 ===============...","difficulty":28.172581950627276,"complexity_metrics":{"word_count":353,"sentence_count":14,"paragraph_count":3,"avg_sentence_length":25.214285714285715,"avg_word_length":4.198300283286119,"unique_word_ratio":0.5722379603399433,"avg_paragraph_length":117.66666666666667,"punctuation_density":0.15864022662889518,"line_break_count":55,"formatting_preservation_score":100.0},"themes":{},"extended_themes":{}},{"id":41,"text":"Abimeleque ovelhas e \\nvacas, e servos e servas, e os deu a Abra\\u00e3o; \\ne restituiu -lhe Sara, sua mulher.  \\n\\n================================================== P\\u00c1GINA 77 ==================================================\\n\\nG\\u00eanesis  21  77 [\\u00cdndice]  \\n \\n15 E disse Abimeleque: Eis que a minha \\nterra est\\u00e1 diante da tua face; habita onde \\nfor bom aos teus olhos.  \\n16 E a Sara disse: V\\u00eas que tenho dado ao \\nteu irm\\u00e3o mil moedas de prata; eis que ele \\nte seja por v\\u00e9u dos olhos para com todos os \\nque contigo est\\u00e3o, e at\\u00e9 para com todos os \\noutros; e est\\u00e1s ad vertida.  \\n17 E orou Abra\\u00e3o a Deus, e sarou Deus a \\nAbimeleque, e \\u00e0 sua mulher, e \\u00e0s suas \\nservas, de maneira que tiveram filhos;  \\n18 Porque o SENHOR havia fechado \\ntotalmente todas as madres da casa de \\nAbimeleque, por causa de Sara, mulher de \\nAbra\\u00e3o.  \\n21 E O SEN HOR visitou a Sara, como \\ntinha dito; e fez o SENHOR a Sara como \\ntinha prometido.  \\n2 E concebeu Sara, e deu a Abra\\u00e3o um \\nfilho na sua velhice, ao tempo \\ndeterminado, que Deus lhe...","difficulty":27.013213213213213,"complexity_metrics":{"word_count":333,"sentence_count":15,"paragraph_count":5,"avg_sentence_length":22.2,"avg_word_length":4.495495495495495,"unique_word_ratio":0.5825825825825826,"avg_paragraph_length":66.6,"punctuation_density":0.15315315315315314,"line_break_count":52,"formatting_preservation_score":100.0},"themes":{},"extended_themes":{}},{"id":51,"text":"beber aos \\ncamelos.  \\n47 Ent\\u00e3o lhe perguntei, e disse: De quem \\n\\u00e9s filha? E ela disse: Filha de Betuel, filho \\nde Naor, que lhe deu Milca. En t\\u00e3o eu pus \\n\\n================================================== P\\u00c1GINA 95 ==================================================\\n\\nG\\u00eanesis  24  95 [\\u00cdndice]  \\n \\no pendente no seu rosto, e as pulseiras \\nsobre as suas m\\u00e3os;  \\n48 E inclinando -me adorei ao SENHOR, e \\nbendisse ao SENHOR, Deus do meu \\nsenhor Abra\\u00e3o, que me havia \\nencaminhado pelo caminho da verdade, \\npara tomar a filha do irm\\u00e3o de meu senhor \\npara se u filho.  \\n49 Agora, pois, se v\\u00f3s haveis de fazer \\nbenevol\\u00eancia e verdade a meu senhor, \\nfazei -mo saber; e se n\\u00e3o, tamb\\u00e9m mo fazei \\nsaber, para que eu v\\u00e1 \\u00e0 direita, ou \\u00e0 \\nesquerda.  \\n50 Ent\\u00e3o responderam Lab\\u00e3o e Betuel, e \\ndisseram: Do SENHOR procedeu este \\nneg\\u00f3cio;  n\\u00e3o podemos falar -te mal ou \\nbem.  \\n51 Eis que Rebeca est\\u00e1 diante da tua face; \\ntoma -a, e vai -te; seja a mulher do filho de \\nteu senhor, como tem dito o SENHOR.  \\n52 E acontece...","difficulty":27.110280373831777,"complexity_metrics":{"word_count":321,"sentence_count":15,"paragraph_count":5,"avg_sentence_length":21.4,"avg_word_length":4.700934579439252,"unique_word_ratio":0.6199376947040498,"avg_paragraph_length":64.2,"punctuation_density":0.19314641744548286,"line_break_count":56,"formatting_preservation_score":100.0},"themes":{},"extended_themes":{}},{"id":61,"text":"a Jac\\u00f3 por causa daquela \\nb\\u00ean\\u00e7\\u00e3o, com que seu pai o tinha \\naben\\u00e7oado; e Esa\\u00fa d isse no seu cora\\u00e7\\u00e3o: \\nChegar -se-\\u00e3o os dias de luto de meu pai; e \\nmatarei a Jac\\u00f3 meu irm\\u00e3o.  \\n42 E foram denunciadas a Rebeca estas \\npalavras de Esa\\u00fa, seu filho mais velho; e \\nela mandou chamar a Jac\\u00f3, seu filho \\nmenor, e disse -lhe: Eis que Esa\\u00fa teu irm\\u00e3o \\nse cons ola a teu respeito, propondo matar -\\nte. \\n43 Agora, pois, meu filho, ouve a minha \\nvoz, e levanta -te; acolhe -te a Lab\\u00e3o meu \\nirm\\u00e3o, em Har\\u00e3,  \\n44 E mora com ele alguns dias, at\\u00e9 que \\npasse o furor de teu irm\\u00e3o;  \\n45 At\\u00e9 que se desvie de ti a ira de teu \\nirm\\u00e3o, e se e sque\\u00e7a do que lhe fizeste; \\nent\\u00e3o mandarei trazer -te de l\\u00e1; por que \\nseria eu desfilhada tamb\\u00e9m de v\\u00f3s ambos \\nnum mesmo dia?  \\n46 E disse Rebeca a Isaque: Enfadada \\nestou da minha vida, por causa das filhas \\nde Hete; se Jac\\u00f3 tomar mulher das filhas \\nde Hete, como estas s\\u00e3o, das filhas desta \\nterra, para que me servir\\u00e1 a vida?  \\n\\n================================================== P...","difficulty":35.45169491525424,"complexity_metrics":{"word_count":354,"sentence_count":7,"paragraph_count":3,"avg_sentence_length":50.57142857142857,"avg_word_length":4.1892655367231635,"unique_word_ratio":0.5677966101694916,"avg_paragraph_length":118.0,"punctuation_density":0.1864406779661017,"line_break_count":53,"formatting_preservation_score":100.0},"themes":{},"extended_themes":{}},{"id":71,"text":"de vosso pai me \\n\\n================================================== P\\u00c1GINA 131 ==================================================\\n\\nG\\u00eanesis  31  131 [\\u00cdndice]  \\n \\nfalou ontem \\u00e0 noite, dizendo: Guarda -te, \\nque n\\u00e3o fales com Jac\\u00f3 nem bem nem mal.  \\n30 E agora se querias ir embora, porquanto \\ntinhas saudades de voltar \\u00e0 casa de teu pai, \\npor que furtaste os meus deuses?  \\n31 Ent\\u00e3o respondeu Jac\\u00f3, e disse a Lab\\u00e3o: \\nPorque temia; pois que dizia comigo, se \\nporventura n\\u00e3o me arrebatarias as tuas \\nfilhas.  \\n32 Com quem achares os teus deuses, esse \\nn\\u00e3o viva; reconhece diante de nossos \\nirm\\u00e3os o que \\u00e9 teu do que est\\u00e1 comigo, e \\ntoma -o para ti . Pois Jac\\u00f3 n\\u00e3o sabia que \\nRaquel os tinha furtado.  \\n33 Ent\\u00e3o entrou Lab\\u00e3o na tenda de Jac\\u00f3, e \\nna tenda de Lia, e na tenda de ambas as \\nservas, e n\\u00e3o os achou; e saindo da tenda \\nde Lia, entrou na tenda de Raquel.  \\n34 Mas tinha tomado Raquel os \\u00eddolos e os \\ntinha posto na albarda de um camelo, e \\nassentara -se sobre eles; e apalpou Lab\\u00e3o \\ntoda a tenda...","difficulty":26.813846153846157,"complexity_metrics":{"word_count":325,"sentence_count":15,"paragraph_count":5,"avg_sentence_length":21.666666666666668,"avg_word_length":4.661538461538462,"unique_word_ratio":0.5846153846153846,"avg_paragraph_length":65.0,"punctuation_density":0.1476923076923077,"line_break_count":53,"formatting_preservation_score":100.0},"themes":{},"extended_themes":{}},{"id":81,"text":"chegar a \\nEfrata, e deu \\u00e0 luz Raquel,  e ela teve \\ntrabalho em seu parto.  \\n17 E aconteceu que, tendo ela trabalho em \\nseu parto, lhe disse a parteira: N\\u00e3o temas, \\nporque tamb\\u00e9m este filho ter\\u00e1s.  \\n18 E aconteceu que, saindo -se-lhe a alma \\n(porque morreu), chamou -lhe Benoni; mas \\nseu pai chamou -lhe Ben jamim.  \\n\\n================================================== P\\u00c1GINA 149 ==================================================\\n\\nG\\u00eanesis  35  149 [\\u00cdndice]  \\n \\n19 Assim morreu Raquel, e foi sepultada \\nno caminho de Efrata; que \\u00e9 Bel\\u00e9m.  \\n20 E Jac\\u00f3 p\\u00f4s uma coluna sobre a sua \\nsepultura; esta \\u00e9 a coluna da sepultura de \\nRaquel at\\u00e9 o dia de hoje.  \\n21 Ent\\u00e3o partiu Israel, e estendeu a sua \\ntenda al\\u00e9m de Migdal Eder.  \\n22 E aconteceu que, habitando Israel \\nnaquela terra, foi R\\u00faben e deitou -se com \\nBila, concubina de seu pai; e Israel o \\nsoube. E eram doze os filhos de Jac\\u00f3.  \\n23 Os filhos de Lia: R\\u00faben, o primog\\u00eanito \\nde Jac\\u00f3, depois Sime\\u00e3o e Levi, e Jud\\u00e1, e \\nIssacar e Zebulom;  \\n24 Os filhos ...","difficulty":25.809350036310818,"complexity_metrics":{"word_count":324,"sentence_count":17,"paragraph_count":5,"avg_sentence_length":19.058823529411764,"avg_word_length":4.6265432098765435,"unique_word_ratio":0.595679012345679,"avg_paragraph_length":64.8,"punctuation_density":0.2006172839506173,"line_break_count":56,"formatting_preservation_score":100.0},"themes":{"arte":100.0},"extended_themes":{}},{"id":91,"text":"que deixara \\na sua roupa em sua m\\u00e3o, e fugira para \\nfora,  \\n14 Chamou aos homens de sua casa, e \\nfalou -lhes, dizendo: Vede, meu marido \\ntrouxe -nos um homem hebreu para \\nescarnecer de n\\u00f3s; veio a mim para deitar -\\nse comigo, e eu gritei com grande voz;  \\n\\n================================================== P\\u00c1GINA 167 ==================================================\\n\\nG\\u00eanesis  39  167 [\\u00cdndice]  \\n \\n15 E aconteceu que, ouvindo ele que eu \\nlevantava a minha voz e gritava, deixou a \\nsua roupa comigo, e fugi u, e saiu para fora.  \\n16 E ela p\\u00f4s a sua roupa perto de si, at\\u00e9 \\nque o seu SENHOR voltou \\u00e0 sua casa.  \\n17 Ent\\u00e3o falou -lhe conforme as mesmas \\npalavras, dizendo: Veio a mim o servo \\nhebreu, que nos trouxeste, para escarnecer \\nde mim;  \\n18 E aconteceu que, levantando  eu a \\nminha voz e gritando, ele deixou a sua \\nroupa comigo, e fugiu para fora.  \\n19 E aconteceu que, ouvindo o seu senhor \\nas palavras de sua mulher, que lhe falava, \\ndizendo: Conforme a estas mesmas \\npalavras me fez teu s...","difficulty":30.948765432098764,"complexity_metrics":{"word_count":324,"sentence_count":10,"paragraph_count":5,"avg_sentence_length":32.4,"avg_word_length":4.666666666666667,"unique_word_ratio":0.5339506172839507,"avg_paragraph_length":64.8,"punctuation_density":0.1574074074074074,"line_break_count":54,"formatting_preservation_score":100.0},"themes":{},"extended_themes":{}},{"id":101,"text":"que trouxeram do \\nEgito, disse -lhes seu pai: Voltai, comprai -\\nnos um pouco de alimento.  \\n3 Mas Jud\\u00e1 respondeu -lhe, dizendo: \\nFortemente nos protestou aquele homem, \\ndizendo: N\\u00e3o vereis a minha face, se o \\nvosso irm\\u00e3o n\\u00e3o vier convosco.  \\n4 Se enviares conosco o nosso irm\\u00e3o, \\ndesceremos e te compraremos alimento;  \\n5 Mas se n\\u00e3o o enviares, n\\u00e3o desceremos ; \\nporquanto aquele homem nos disse: N\\u00e3o \\nvereis a minha face, se o vosso irm\\u00e3o n\\u00e3o \\nvier convosco.  \\n6 E disse Israel: Por que me fizeste tal mal, \\nfazendo saber \\u00e0quele homem que t\\u00ednheis \\nainda outro irm\\u00e3o?  \\n\\n================================================== P\\u00c1GINA 185 ==================================================\\n\\nG\\u00eanes is 43  185 [\\u00cdndice]  \\n \\n7 E eles disseram: Aquele homem \\nparticularmente nos per guntou por n\\u00f3s, e \\npela nossa parentela, dizendo: Vive ainda \\nvosso pai? Tendes mais um irm\\u00e3o? E \\nrespondemos -lhe conforme as mesmas \\npalavras. Pod\\u00edamos n\\u00f3s saber que diria: \\nTrazei vosso irm\\u00e3o?  \\n8 Ent\\u00e3o disse Jud\\u00e1 a Israel, s...","difficulty":29.033,"complexity_metrics":{"word_count":300,"sentence_count":12,"paragraph_count":5,"avg_sentence_length":25.0,"avg_word_length":5.11,"unique_word_ratio":0.6133333333333333,"avg_paragraph_length":60.0,"punctuation_density":0.18666666666666668,"line_break_count":54,"formatting_preservation_score":100.0},"themes":{},"extended_themes":{}}],"book_analysis":{"total_segments":2494,"total_words":792016,"avg_difficulty":28.56796226012857,"max_difficulty":37.46807817589577,"min_difficulty":16.16072840203275},"book_cover":"book_cover.png","is_large_book":true}') {
+                document.getElementById('textContainer').innerHTML = 
+                    '<p class="error">Erro: Dados do livro não foram carregados corretamente.</p>';
+                return;
+            }
+            
+            // Inicializar a interface
+            initializeInterface();
+            
+            // Teclas de atalho
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft') {
+                    navigateTo('prev');
+                } else if (e.key === 'ArrowRight') {
+                    navigateTo('next');
+                } else if (e.key === 'Home') {
+                    navigateTo('first');
+                } else if (e.key === 'End') {
+                    navigateTo('last');
+                } else if (e.key === 's' && e.ctrlKey) {
+                    e.preventDefault();
+                    document.getElementById('searchInput').focus();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
